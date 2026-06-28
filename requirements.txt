@@ -1,0 +1,15 @@
+numpy
+pandas
+matplotlib
+scikit-learn
+tensorflow
+opencv-python
+librosa
+soundfile
+fastapi
+uvicorn
+python-multipart
+pydantic
+joblib
+requests
+python-dotenv
