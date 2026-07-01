@@ -1,40 +1,84 @@
-from text_emotion.text_predict import predict_emotions
+from text_emotion.transformer_predict import predict_emotions
 
 
-FINAL_EMOTION_MAP = {
+def detect_text_emotion(text):
+
+    result = predict_emotions(text)
+
+    return {
+
+        "input_text": text,
+
+        "predictions": result["predictions"],
+
+        "final_emotion": result["final_emotion"],
+
+        "final_confidence": result["final_confidence"]
+
+    }
+def detect_text_emotion(text):
+    result = predict_emotions(text)
+
+    return {
+        "input_text": text,
+        "predictions": result["predictions"],
+        "final_emotion": result["final_emotion"]
+    }
+
+EMOTION_MAPPING = {
+
+    # ---------------- Happy ----------------
     "joy": "Happy",
     "amusement": "Happy",
-    "excitement": "Excited",
-    "optimism": "Happy",
     "gratitude": "Happy",
     "love": "Happy",
+    "optimism": "Happy",
+    "pride": "Happy",
+    "relief": "Happy",
     "admiration": "Happy",
     "approval": "Happy",
-    "caring": "Happy",
+    "excitement": "Happy",
 
+    # ---------------- Sad ----------------
     "sadness": "Sad",
     "grief": "Sad",
     "disappointment": "Sad",
     "remorse": "Sad",
+    "embarrassment": "Sad",
 
+    # ---------------- Angry ----------------
     "anger": "Angry",
     "annoyance": "Angry",
     "disapproval": "Angry",
-    "disgust": "Angry",
 
+    # ---------------- Anxious ----------------
     "fear": "Anxious",
     "nervousness": "Anxious",
 
-    "curiosity": "Excited",
-    "surprise": "Surprised",
-    "confusion": "Confused",
+    # ---------------- Calm ----------------
+    "neutral": "Calm",
+    "relief": "Calm",
 
-    "neutral": "Neutral",
-    "realization": "Neutral",
-    "desire": "Excited",
-    "relief": "Happy",
-    "embarrassment": "Anxious",
-    "pride": "Happy"
+    # ---------------- Motivated ----------------
+    "determination": "Motivated",
+    "desire": "Motivated",
+    "optimism": "Motivated",
+
+    # ---------------- Interested ----------------
+    "curiosity": "Interested",
+    "realization": "Interested",
+
+    # ---------------- Caring ----------------
+    "caring": "Caring",
+
+    # ---------------- Surprise ----------------
+    "surprise": "Surprised",
+
+    # ---------------- Disgust ----------------
+    "disgust": "Disgust",
+
+    # ---------------- Confused ----------------
+    "confusion": "Confused"
 }
 
 

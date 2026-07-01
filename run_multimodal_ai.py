@@ -24,9 +24,16 @@ def run_text_detection():
 
     print("\nTop Predicted Emotions:")
     for pred in result["predictions"]:
-        print(f"{pred['emotion']} -> {pred['confidence']}")
+        print(
+            f"{pred['emotion']} "
+            f"({pred['raw_emotion']}) "
+            f"-> {pred['confidence']}"
+        )
 
-    print("\nFinal Detected Emotion:", result["final_emotion"])
+    print("-" * 50)
+    print("Final Detected Emotion :", result["final_emotion"])
+    print("Confidence             :", f"{result['final_confidence']}%")
+    print("-" * 50)
     print("-" * 50)
 
 
