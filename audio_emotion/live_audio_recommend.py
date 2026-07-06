@@ -1,7 +1,9 @@
 import sys
 import os
 import tempfile
+from integration.emotion_mapper import AUDIO_TO_FINAL
 
+final = AUDIO_TO_FINAL[result["detected_emotion"]]
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import sounddevice as sd

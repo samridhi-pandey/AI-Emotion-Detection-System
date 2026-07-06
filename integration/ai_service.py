@@ -1,4 +1,4 @@
-from text_emotion.transformer_predict import predict_emotions
+from text_emotion.train_transformer_model import predict_emotions
 
 
 def detect_text_emotion(text):

@@ -1,94 +1,95 @@
-import sys
 import os
-import tempfile
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
+import sys
 import cv2
+import tempfile
 import sounddevice as sd
 from scipy.io.wavfile import write
-from deepface import DeepFace
 
+# Add project root to Python path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from text_emotion.text_predict import predict_emotions
+from facial_emotion.face_predict import predict_face_emotion
 from audio_emotion.audio_predict import predict_audio_mood
-from integration.ai_service import detect_text_emotion
 
 
+# ----------------------------
+# TEXT EMOTION DETECTION
+# ----------------------------
 def run_text_detection():
+
+    from integration.emotion_mapper import get_final_text_emotion
+
     text = input("\nEnter your text: ")
 
-    result = detect_text_emotion(text)
+    predictions = predict_emotions(text)
 
-    print("\nText Emotion Detection Result")
-    print("-" * 50)
-    print("Input Text:", result["input_text"])
+    print("\n========== TEXT EMOTION DETECTION ==========\n")
+    print("Top Predicted Emotions:\n")
 
-    print("\nTop Predicted Emotions:")
-    for pred in result["predictions"]:
+    for i, pred in enumerate(predictions, start=1):
         print(
-            f"{pred['emotion']} "
-            f"({pred['raw_emotion']}) "
-            f"-> {pred['confidence']}"
+            f"{i}. {pred['emotion']} "
+            f"(Confidence: {pred['confidence']:.4f})"
         )
 
-    print("-" * 50)
-    print("Final Detected Emotion :", result["final_emotion"])
-    print("Confidence             :", f"{result['final_confidence']}%")
-    print("-" * 50)
-    print("-" * 50)
+    final_emotion = get_final_text_emotion(predictions)
+
+    print("\nFinal Emotion:", final_emotion)
 
 
+# ----------------------------
+# WEBCAM EMOTION DETECTION
+# ----------------------------
 def run_webcam_detection():
-    from collections import Counter
-    import time
 
-    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-
-    if not cap.isOpened():
-        print("Cannot open webcam.")
-        return
+    cap = cv2.VideoCapture(0)
 
     print("\nWebcam started.")
-    print("Detecting emotion for 5 seconds...")
+    print("Press Q to quit.\n")
 
-    detected_emotions = []
-    start_time = time.time()
+    while True:
 
-    while time.time() - start_time < 5:
         ret, frame = cap.read()
 
         if not ret:
-            print("Camera not working.")
+            print("Unable to access webcam.")
             break
 
-        try:
-            result = DeepFace.analyze(
-                img_path=frame,
-                actions=["emotion"],
-                enforce_detection=False,
-                detector_backend="opencv"
+        # Predict emotion
+        result = predict_face_emotion(frame)
+
+        if result is not None:
+            from integration.emotion_mapper import FACE_TO_FINAL
+
+            x, y, w, h = result["box"]
+
+            final_emotion = FACE_TO_FINAL.get(
+                result["emotion"],
+                "Neutral"
             )
 
-            if isinstance(result, list):
-                emotion = result[0]["dominant_emotion"]
-            else:
-                emotion = result["dominant_emotion"]
+            confidence = result["confidence"]
 
-            detected_emotions.append(emotion)
-
-            cv2.putText(
+            cv2.rectangle(
                 frame,
-                f"Detecting: {emotion}",
-                (20, 50),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
+                (x, y),
+                (x + w, y + h),
                 (0, 255, 0),
                 2
             )
 
-        except Exception as e:
-            pass
+            cv2.putText(
+                frame,
+                f"{final_emotion} ({confidence:.2f})",
+                (x, y - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (0, 255, 0),
+                2
+            )
 
-        cv2.imshow("Webcam Emotion Detection", frame)
+        cv2.imshow("Facial Emotion Detection", frame)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
@@ -96,18 +97,12 @@ def run_webcam_detection():
     cap.release()
     cv2.destroyAllWindows()
 
-    if detected_emotions:
-        final_emotion = Counter(detected_emotions).most_common(1)[0][0]
 
-        print("\nWebcam Emotion Detection Result")
-        print("-" * 50)
-        print("Final Detected Emotion:", final_emotion)
-        print("-" * 50)
-    else:
-        print("No emotion detected.")
-
-
+# ----------------------------
+# AUDIO RECORDING
+# ----------------------------
 def record_audio(duration=5, sample_rate=22050):
+
     print("\nRecording started...")
     print("Speak now...")
 
@@ -122,41 +117,59 @@ def record_audio(duration=5, sample_rate=22050):
 
     print("Recording completed.")
 
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+    temp = tempfile.NamedTemporaryFile(
+        delete=False,
+        suffix=".wav"
+    )
 
     write(
-        temp_file.name,
+        temp.name,
         sample_rate,
         (audio * 32767).astype("int16")
     )
 
-    return temp_file.name
+    return temp.name
 
 
+# ----------------------------
+# AUDIO EMOTION DETECTION
+# ----------------------------
 def run_audio_detection():
-    audio_path = record_audio(duration=5)
+
+    audio_path = record_audio()
+
+    from integration.emotion_mapper import AUDIO_TO_FINAL
 
     result = predict_audio_mood(audio_path)
 
-    print("\nAudio Emotion Detection Result")
-    print("-" * 50)
-    print("Detected Emotion:", result["detected_emotion"])
+    raw_emotion = result["detected_emotion"]
 
-    if "confidence" in result:
-        print("Confidence:", result["confidence"])
+    final_emotion = AUDIO_TO_FINAL.get(
+        raw_emotion,
+        "Neutral"
+    )
 
-    print("-" * 50)
+    print("\n========== AUDIO EMOTION DETECTION ==========\n")
+    print("Detected Emotion:", final_emotion)
 
     os.remove(audio_path)
 
 
+# ----------------------------
+# MAIN MENU
+# ----------------------------
 def main():
+
     while True:
-        print("\nAI Emotion Detection System")
-        print("=" * 60)
+
+        print("\n")
+        print("=" * 55)
+        print(" AI MULTI-MODAL EMOTION DETECTION SYSTEM ")
+        print("=" * 55)
+
         print("1. Text Emotion Detection")
-        print("2. Webcam Emotion Detection")
-        print("3. Live Audio Emotion Detection")
+        print("2. Facial Emotion Detection (Webcam)")
+        print("3. Audio Emotion Detection (Microphone)")
         print("4. Exit")
 
         choice = input("\nEnter your choice: ")
@@ -171,11 +184,11 @@ def main():
             run_audio_detection()
 
         elif choice == "4":
-            print("Exiting system.")
+            print("\nExiting...")
             break
 
         else:
-            print("Invalid choice. Please enter 1, 2, 3, or 4.")
+            print("\nInvalid choice. Please try again.")
 
 
 if __name__ == "__main__":
