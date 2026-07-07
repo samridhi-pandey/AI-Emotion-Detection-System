@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aura - AI Emotion-Based Music System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- DYNAMIC DASHBOARD AMBIENT GLOW BACKDROP -->
+  <div class="dashboard-ambient-glow" id="theme-ambient-glow"></div>
+
+  <!-- PERSISTENT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo-section">
+      <div class="logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" stroke="white" stroke-width="2.5" fill="none">
+          <path d="M12 2v20M17 5v14M22 9v6M7 8v8M2 10v4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="logo-text">AURA AI</span>
+    </div>
+
+    <nav class="nav-group">
+      <a class="nav-link active" data-target="home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Home Dashboard
+      </a>
+      <a class="nav-link" data-target="search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Search Music
+      </a>
+      <a class="nav-link" data-target="library">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M9 18V5l12-2v13"/>
+          <circle cx="6" cy="18" r="3"/>
+          <circle cx="18" cy="16" r="3"/>
+        </svg>
+        Your Library
+      </a>
+      
+      <div class="nav-divider"></div>
+      <span class="nav-label">Playlists</span>
+      
+      <a class="nav-link" data-target="mixology">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M12 2v20M17 5v14M22 9v6M7 8v8M2 10v4"/>
+        </svg>
+        Mood Mixology
+      </a>
+      
+      <div class="nav-divider" style="margin-top: auto;"></div>
+      <a class="nav-link" data-target="settings">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Settings
+      </a>
+    </nav>
+  </aside>
+
+  <!-- CONTENT VIEW AREA -->
+  <main class="main-content">
+    
+    <!-- TOP HEADER -->
+    <header class="header">
+      <div class="search-box">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" stroke="var(--text-muted)" stroke-width="2" fill="none">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="global-search-input" placeholder="Search songs, artists, or moods...">
+      </div>
+
+      <div class="header-actions">
+        <div class="active-mood-badge">
+          <span class="active-mood-dot"></span>
+          <span id="current-mood-text">Mood: Neutral</span>
+        </div>
+        <div class="profile-badge">
+          <div class="profile-avatar">U</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- SECTION: HOME DASHBOARD -->
+    <section id="section-home" class="content-section active">
+      <div class="section-header">
+        <h1 class="section-title">Emotion-Based Recommendation</h1>
+        <p class="section-subtitle">Real-time artificial intelligence tuned to your emotional well-being.</p>
+      </div>
+
+      <div class="dashboard-grid">
+        
+        <!-- Webcam Detector Card -->
+        <div class="card col-webcam">
+          <h3 class="card-title">
+            <span>Webcam Scan</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </h3>
+          <div class="webcam-container">
+            <video id="webcam-feed" autoplay playsinline muted></video>
+            <div id="webcam-placeholder" class="webcam-placeholder">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" style="margin-bottom: 8px;">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span>Click to activate Camera</span>
+            </div>
+            <div id="webcam-hud" class="webcam-hud">
+              <div id="hud-scan-line" class="hud-scan-line"></div>
+              <div id="hud-target-box" class="hud-target-box"></div>
+              <canvas id="webcam-canvas-overlay" style="position: absolute; inset: 0; pointer-events: none;"></canvas>
+              <span id="hud-stats-overlay" class="hud-overlay-text">STATUS: STANDBY</span>
+            </div>
+          </div>
+          <div class="webcam-controls">
+            <button id="btn-toggle-camera" class="btn btn-secondary">Start Scanner</button>
+            <button id="btn-capture-mood" class="btn btn-primary" style="display: none;">Scan Face</button>
+          </div>
+        </div>
+
+        <!-- Text Sentiment Card -->
+        <div class="card col-text">
+          <h3 class="card-title">
+            <span>Mood Journal</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+              <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+          </h3>
+          <div class="journal-container">
+            <textarea id="journal-input" class="journal-textarea" placeholder="How are you feeling right now? Write your thoughts... (e.g. 'I had a super busy day at work and feel tired, but I want to relax...')"></textarea>
+            <div class="sentiment-indicator-bar" id="sentiment-indicator">
+              <span style="font-size: 0.85rem; color: var(--text-secondary);">Detected Sentiment:</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="sentiment-dot" id="sentiment-dot"></span>
+                <span id="sentiment-text" style="font-weight:600; font-size:0.85rem;">Idle</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audio Recorder Card -->
+        <div class="card col-audio">
+          <h3 class="card-title">
+            <span>Voice Tone</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v4M8 23h8"/>
+            </svg>
+          </h3>
+          <div class="audio-analysis-container">
+            <button id="btn-record-voice" class="audio-record-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v4M8 23h8"/>
+              </svg>
+            </button>
+            <span id="voice-status-text" style="font-size:0.85rem; color:var(--text-secondary);">Click to record 3s clip</span>
+            <canvas id="voice-visualizer" class="audio-wave-canvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Interactive Mood Grid (Manual Override) -->
+        <div class="card col-manual">
+          <h3 class="card-title">
+            <span>Mood Slider</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>
+            </svg>
+          </h3>
+          <div class="manual-grid-2d" id="manual-mood-grid">
+            <div class="manual-grid-axis-x"></div>
+            <div class="manual-grid-axis-y"></div>
+            <div class="manual-grid-pointer" id="manual-mood-pointer" style="top: 50%; left: 50%;"></div>
+            <div id="manual-grid-tooltip" class="grid-tooltip">Valence: 0.00 | Arousal: 0.00</div>
+            <span class="manual-label ml-top">Energetic</span>
+            <span class="manual-label ml-bottom">Calm</span>
+            <span class="manual-label ml-left">Sad</span>
+            <span class="manual-label ml-right">Happy</span>
+          </div>
+        </div>
+
+        <!-- Recommended Tracks Card -->
+        <div class="card col-recommendations">
+          <h3 class="card-title">
+            <span id="recommendation-header-title">Personalized Recommendations</span>
+            <span style="font-size:0.8rem; font-weight:normal; color:var(--text-muted);">AI Mood Match</span>
+          </h3>
+          <div class="track-list" id="recommended-tracks-container">
+            <!-- Shimmering Skeleton rows by default (loading state) -->
+            <div class="skeleton-row">
+              <div class="skeleton-cover skeleton-pulse"></div>
+              <div class="skeleton-details">
+                <div class="skeleton-line title skeleton-pulse"></div>
+                <div class="skeleton-line artist skeleton-pulse"></div>
+              </div>
+              <div class="skeleton-album skeleton-pulse"></div>
+              <div class="skeleton-badge skeleton-pulse"></div>
+              <div class="skeleton-time skeleton-pulse"></div>
+            </div>
+            <div class="skeleton-row">
+              <div class="skeleton-cover skeleton-pulse"></div>
+              <div class="skeleton-details">
+                <div class="skeleton-line title skeleton-pulse"></div>
+                <div class="skeleton-line artist skeleton-pulse"></div>
+              </div>
+              <div class="skeleton-album skeleton-pulse"></div>
+              <div class="skeleton-badge skeleton-pulse"></div>
+              <div class="skeleton-time skeleton-pulse"></div>
+            </div>
+            <div class="skeleton-row">
+              <div class="skeleton-cover skeleton-pulse"></div>
+              <div class="skeleton-details">
+                <div class="skeleton-line title skeleton-pulse"></div>
+                <div class="skeleton-line artist skeleton-pulse"></div>
+              </div>
+              <div class="skeleton-album skeleton-pulse"></div>
+              <div class="skeleton-badge skeleton-pulse"></div>
+              <div class="skeleton-time skeleton-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acoustic Profile Card -->
+        <div class="card col-acoustic-profile">
+          <h3 class="card-title">
+            <span>Acoustic Profile</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+              <path d="M12 20v-8M17 20V8M22 20v-4M7 20v-6M2 20V4"/>
+            </svg>
+          </h3>
+          <div class="acoustic-metrics-list">
+            <div class="acoustic-metric-item">
+              <div class="acoustic-metric-header">
+                <span>Energy</span>
+                <span id="acoustic-val-energy">0%</span>
+              </div>
+              <div class="acoustic-bar-bg"><div class="acoustic-bar-fill" id="acoustic-fill-energy"></div></div>
+            </div>
+            <div class="acoustic-metric-item">
+              <div class="acoustic-metric-header">
+                <span>Valence (Positivity)</span>
+                <span id="acoustic-val-valence">0%</span>
+              </div>
+              <div class="acoustic-bar-bg"><div class="acoustic-bar-fill" id="acoustic-fill-valence"></div></div>
+            </div>
+            <div class="acoustic-metric-item">
+              <div class="acoustic-metric-header">
+                <span>Danceability</span>
+                <span id="acoustic-val-danceability">0%</span>
+              </div>
+              <div class="acoustic-bar-bg"><div class="acoustic-bar-fill" id="acoustic-fill-danceability"></div></div>
+            </div>
+            <div class="acoustic-metric-item">
+              <div class="acoustic-metric-header">
+                <span>Tempo (BPM)</span>
+                <span id="acoustic-val-tempo">0 BPM</span>
+              </div>
+              <div class="acoustic-bar-bg"><div class="acoustic-bar-fill" id="acoustic-fill-tempo"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Mood History Line Chart -->
+        <div class="card col-history">
+          <h3 class="card-title">
+            <span>Weekly Mood Calendar</span>
+            <span style="font-size:0.8rem; font-weight:normal; color:var(--text-muted);">Mental Well-being Trends</span>
+          </h3>
+          <div class="chart-container">
+            <canvas id="mood-trend-canvas" style="width: 100%; height: 100%;"></canvas>
+          </div>
+        </div>
+
+        <!-- Top Detected Emotions Donut Stats -->
+        <div class="card col-emotions">
+          <h3 class="card-title">
+            <span>Top Detected Emotions</span>
+            <span style="font-size:0.8rem; font-weight:normal; color:var(--text-muted);">Acoustic Stats</span>
+          </h3>
+          <div class="donut-stats-container">
+            <div class="donut-svg-wrapper">
+              <svg viewBox="0 0 36 36" style="width:100%; height:100%; transform: rotate(-90deg);">
+                <!-- Gray background ring -->
+                <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--border-color)" stroke-width="2.5"></circle>
+              </svg>
+              <!-- Center text -->
+              <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+                <span style="font-size: 1.15rem; font-weight: 700;">0%</span>
+                <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;">Neutral</span>
+              </div>
+            </div>
+            
+            <div class="donut-legend">
+              <div style="text-align:center; color:var(--text-muted); font-size:0.8rem;">
+                No emotion history recorded yet.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION: SEARCH MUSIC -->
+    <section id="section-search" class="content-section">
+      <div class="section-header">
+        <h1 class="section-title">Search & Explore</h1>
+        <p class="section-subtitle">Browse music by specific emotional wavelengths or search directly.</p>
+      </div>
+
+      <div class="mood-tags-container" id="search-mood-tags">
+        <button class="mood-tag-btn active" data-mood="all">All Moods</button>
+      </div>
+
+      <div class="card" style="padding: 24px;">
+        <h3 class="card-title" style="margin-bottom: 20px;">Library Tracks</h3>
+        <div class="track-list" id="search-results-container">
+          <div class="skeleton-row">
+            <div class="skeleton-cover skeleton-pulse"></div>
+            <div class="skeleton-details">
+              <div class="skeleton-line title skeleton-pulse"></div>
+              <div class="skeleton-line artist skeleton-pulse"></div>
+            </div>
+            <div class="skeleton-album skeleton-pulse"></div>
+            <div class="skeleton-badge skeleton-pulse"></div>
+            <div class="skeleton-time skeleton-pulse"></div>
+          </div>
+          <div class="skeleton-row">
+            <div class="skeleton-cover skeleton-pulse"></div>
+            <div class="skeleton-details">
+              <div class="skeleton-line title skeleton-pulse"></div>
+              <div class="skeleton-line artist skeleton-pulse"></div>
+            </div>
+            <div class="skeleton-album skeleton-pulse"></div>
+            <div class="skeleton-badge skeleton-pulse"></div>
+            <div class="skeleton-time skeleton-pulse"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: YOUR LIBRARY -->
+    <section id="section-library" class="content-section">
+      <div class="section-header">
+        <h1 class="section-title">Your Personal Library</h1>
+        <p class="section-subtitle">Access your liked songs, listening history, and custom playlist mixes.</p>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Liked Songs Panel -->
+        <div class="card" style="grid-column: span 4;">
+          <h3 class="card-title">
+            <span>Liked Songs</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" stroke="var(--accent-pink)" stroke-width="2" fill="var(--accent-pink)">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </h3>
+          <div class="track-list" id="library-liked-container">
+            <div class="skeleton-row compact">
+              <div class="skeleton-cover skeleton-pulse"></div>
+              <div class="skeleton-details">
+                <div class="skeleton-line title skeleton-pulse" style="width: 70%;"></div>
+                <div class="skeleton-line artist skeleton-pulse" style="width: 45%;"></div>
+              </div>
+            </div>
+            <div class="skeleton-row compact">
+              <div class="skeleton-cover skeleton-pulse"></div>
+              <div class="skeleton-details">
+                <div class="skeleton-line title skeleton-pulse" style="width: 60%;"></div>
+                <div class="skeleton-line artist skeleton-pulse" style="width: 50%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recently Played Panel (History) -->
+        <div class="card" style="grid-column: span 4;">
+          <h3 class="card-title">
+            <span>Recently Played</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </h3>
+          <div class="track-list" id="library-history-container">
+            <div class="skeleton-row compact">
+              <div class="skeleton-cover skeleton-pulse"></div>
+              <div class="skeleton-details">
+                <div class="skeleton-line title skeleton-pulse" style="width: 55%;"></div>
+                <div class="skeleton-line artist skeleton-pulse" style="width: 40%;"></div>
+              </div>
+            </div>
+            <div class="skeleton-row compact">
+              <div class="skeleton-cover skeleton-pulse"></div>
+              <div class="skeleton-details">
+                <div class="skeleton-line title skeleton-pulse" style="width: 75%;"></div>
+                <div class="skeleton-line artist skeleton-pulse" style="width: 35%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Played Songs Panel -->
+        <div class="card" style="grid-column: span 4;">
+          <h3 class="card-title">
+            <span>Top Played</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" stroke="var(--accent-orange)" stroke-width="2" fill="none">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </h3>
+          <div class="track-list" id="library-top-played-container">
+            <div class="skeleton-row compact">
+              <div class="skeleton-cover skeleton-pulse"></div>
+              <div class="skeleton-details">
+                <div class="skeleton-line title skeleton-pulse" style="width: 65%;"></div>
+                <div class="skeleton-line artist skeleton-pulse" style="width: 50%;"></div>
+              </div>
+            </div>
+            <div class="skeleton-row compact">
+              <div class="skeleton-cover skeleton-pulse"></div>
+              <div class="skeleton-details">
+                <div class="skeleton-line title skeleton-pulse" style="width: 70%;"></div>
+                <div class="skeleton-line artist skeleton-pulse" style="width: 40%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Brewed Playlists Panel -->
+        <div class="card" style="grid-column: span 12;">
+          <h3 class="card-title">Your Brewed Playlists</h3>
+          <div class="dashboard-grid" id="library-playlists-container" style="width:100%; gap: 16px;">
+            <div style="grid-column:span 12; text-align:center; padding:30px 0; color:var(--text-muted); font-size:0.9rem;">
+              No custom playlists brewed yet. Head to "Mood Mixology" to brew your first playlist!
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: MOOD MIXOLOGY -->
+    <section id="section-mixology" class="content-section">
+      <div class="section-header">
+        <h1 class="section-title">Mood Mixology</h1>
+        <p class="section-subtitle">Blend different emotional profiles like alchemy ingredients to brew unique playlist combinations.</p>
+      </div>
+
+      <div class="mixology-container">
+        <!-- Sliders card -->
+        <div class="card">
+          <h3 class="card-title">Alchemy Ingredients</h3>
+          <div class="mixology-sliders" id="mixology-sliders-container">
+            <div style="text-align:center; padding:40px 0; color:var(--text-muted); font-size:0.9rem;">
+              Sliders will appear once custom emotions are defined.
+            </div>
+          </div>
+        </div>
+
+        <!-- Resulting Playlist card -->
+        <div class="mixology-result-card">
+          <div class="card" style="padding: 0; border: none; background: none;">
+            <div class="mix-art-preview">
+              <div class="mix-art-gradient" id="mix-art-gradient"></div>
+              <div class="mix-art-content">
+                <span class="mix-art-title" id="mix-playlist-title">Custom Formula</span>
+                <span class="mix-art-subtitle" id="mix-playlist-subtitle">Blend ingredients</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <button id="btn-brew-playlist" class="btn btn-primary" style="flex:1; margin-right:12px;">Brew Playlist</button>
+            <button id="btn-reset-brew" class="btn btn-secondary">Reset</button>
+          </div>
+
+          <div class="card" style="flex:1;">
+            <h3 class="card-title">Brewed Result</h3>
+            <div class="track-list" id="brewed-tracks-container">
+              <div class="skeleton-row">
+                <div class="skeleton-cover skeleton-pulse"></div>
+                <div class="skeleton-details">
+                  <div class="skeleton-line title skeleton-pulse"></div>
+                  <div class="skeleton-line artist skeleton-pulse"></div>
+                </div>
+                <div class="skeleton-album skeleton-pulse"></div>
+                <div class="skeleton-badge skeleton-pulse"></div>
+                <div class="skeleton-time skeleton-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: SETTINGS -->
+    <section id="section-settings" class="content-section">
+      <div class="section-header">
+        <h1 class="section-title">System Settings</h1>
+        <p class="section-subtitle">Configure audio recording, webcam feeds, and general preferences.</p>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Devices Selection</h3>
+        <div class="settings-form">
+          <div class="settings-group">
+            <label class="settings-label">Active Camera Input</label>
+            <select class="settings-select" id="settings-camera-select">
+              <option value="default">Default System Camera</option>
+            </select>
+          </div>
+          
+          <div class="settings-group">
+            <label class="settings-label">Active Microphone Input</label>
+            <select class="settings-select" id="settings-mic-select">
+              <option value="default">Default System Microphone</option>
+            </select>
+          </div>
+
+          <div class="settings-group" style="margin-top: 16px;">
+            <label class="settings-label" style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" checked style="width:16px; height:16px; accent-color: var(--accent-color);">
+              Enable Local Face Landmark Analysis
+            </label>
+            <span style="font-size:0.75rem; color:var(--text-muted); padding-left:24px;">Privacy note: All emotion recognition calculations are processed entirely locally inside your browser cache. No camera or microphone data is ever uploaded to any servers.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PERSISTENT BOTTOM PLAYER BAR -->
+    <footer class="player-bar">
+      <div class="player-left">
+        <div class="player-cover" id="current-player-cover" style="background: linear-gradient(135deg, var(--bg-card), var(--border-color))">
+          🎵
+        </div>
+        <div class="player-info">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="player-title" id="current-player-title">Not Playing</span>
+            <div id="playing-eq-icon" class="playing-equalizer" style="display: none;">
+              <div class="eq-bar"></div>
+              <div class="eq-bar"></div>
+              <div class="eq-bar"></div>
+            </div>
+          </div>
+          <span class="player-artist" id="current-player-artist">Choose a track to play</span>
+        </div>
+        <button id="btn-toggle-favorite" class="control-btn" style="margin-left: 20px; display: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="player-center">
+        <div class="player-controls">
+          <button id="btn-player-shuffle" class="control-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+          </button>
+          <button id="btn-player-prev" class="control-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+          </button>
+          <button id="btn-player-play" class="control-btn btn-play-pause">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>
+          <button id="btn-player-next" class="control-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+          </button>
+          <button id="btn-player-repeat" class="control-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          </button>
+        </div>
+        <div class="player-progress">
+          <span class="time-label" id="current-player-time">0:00</span>
+          <div class="progress-slider-container" id="player-progress-container">
+            <div class="progress-bar-fill" id="player-progress-bar"></div>
+          </div>
+          <span class="time-label" id="current-player-duration">0:00</span>
+        </div>
+      </div>
+
+      <div class="player-right">
+        <button id="btn-open-ambient" class="control-btn" title="Open Ambient Visualizer">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <line x1="9" y1="3" x2="9" y2="21"/>
+          </svg>
+        </button>
+        
+        <div class="volume-container">
+          <button id="btn-volume-mute" class="control-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" id="volume-icon">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+          </button>
+          <input type="range" class="input-slider volume-slider" id="player-volume-slider" min="0" max="100" value="80">
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- FULLSCREEN AMBIENT VISUALIZER OVERLAY -->
+  <div id="ambient-visualizer-overlay" class="ambient-visualizer">
+    <div class="fluid-bg" id="ambient-fluid-bg"></div>
+    <button id="btn-close-ambient" class="btn-close-ambient">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="white" stroke-width="2.5" fill="none">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <div class="ambient-content">
+      <div class="ambient-cover-wrapper">
+        <div id="ambient-cover" class="ambient-cover-image" style="background: linear-gradient(135deg, var(--accent-color), var(--accent-pink))">🎵</div>
+      </div>
+      <h2 id="ambient-title" class="ambient-song-title">Not Playing</h2>
+      <p id="ambient-artist" class="ambient-song-artist">Choose a track to play</p>
+      
+      <!-- Oscilloscope lines -->
+      <canvas id="ambient-osc" class="ambient-osc-visualizer"></canvas>
+    </div>
+  </div>
+
+  <!-- LOAD SCRIPT DEPENDENCY -->
+  <script src="app.js"></script>
+</body>
+</html>
