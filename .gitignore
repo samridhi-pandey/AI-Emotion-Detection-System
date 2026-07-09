@@ -1,20 +1,8 @@
-# Virtual environments
-.venv/
-venv/
-
-# PyCharm
-.idea/
-
-# Python cache
 __pycache__/
-*.py[cod]
-*$py.class
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
+*.pyc
+.env
+.venv/
+node_modules/
 *.log
+datasets/audio_emotion/
 datasets/facial_emotion/archive (14)/
-datasets/music/

@@ -8,7 +8,6 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import f1_score, hamming_loss, classification_report
-from sklearn.model_selection import GridSearchCV
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -67,51 +66,28 @@ def train_model():
     y_train = mlb.fit_transform(y_train_labels)
     y_test = mlb.transform(y_test_labels)
 
-    pipeline = Pipeline([
-        ("tfidf", TfidfVectorizer(stop_words="english")),
+    model = Pipeline([
+        ("tfidf", TfidfVectorizer(
+            max_features=50000,
+            ngram_range=(1, 2),
+            stop_words="english"
+        )),
         ("classifier", OneVsRestClassifier(
-            LogisticRegression(
-                max_iter=1000,
-                solver="liblinear"
-            )
+            LogisticRegression(max_iter=1000)
         ))
     ])
 
-    param_grid = {
-        "tfidf__max_features": [20000, 50000],
-        "tfidf__ngram_range": [(1, 1), (1, 2)],
-        "classifier__estimator__C": [0.1, 1, 10],
-        "classifier__estimator__class_weight": [None, "balanced"]
-    }
+    print("Training model...")
+    model.fit(X_train, y_train)
 
-    grid = GridSearchCV(
-        estimator=pipeline,
-        param_grid=param_grid,
-        scoring="f1_micro",
-        cv=3,
-        n_jobs=-1,
-        verbose=2
-    )
-
-    print("Starting hyperparameter tuning...")
-    grid.fit(X_train, y_train)
-
-    print("\nBest Parameters:")
-    print(grid.best_params_)
-
-    print("\nBest Cross Validation Score:")
-    print(grid.best_score_)
-
-    model = grid.best_estimator_
-
-    print("\nTesting best model...")
+    print("Testing model...")
     y_pred = model.predict(X_test)
 
     micro_f1 = f1_score(y_test, y_pred, average="micro", zero_division=0)
     macro_f1 = f1_score(y_test, y_pred, average="macro", zero_division=0)
     h_loss = hamming_loss(y_test, y_pred)
 
-    print("\nFinal Model Evaluation")
+    print("\nModel Evaluation")
     print("Micro F1 Score:", micro_f1)
     print("Macro F1 Score:", macro_f1)
     print("Hamming Loss:", h_loss)
@@ -127,7 +103,7 @@ def train_model():
     joblib.dump(model, MODEL_PATH)
     joblib.dump(mlb, BINARIZER_PATH)
 
-    print("\nTuned model saved at:", MODEL_PATH)
+    print("\nModel saved at:", MODEL_PATH)
     print("Label binarizer saved at:", BINARIZER_PATH)
 
 

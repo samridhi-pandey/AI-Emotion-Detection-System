@@ -8,8 +8,7 @@
 // ==========================================
 // The backend and ML developers can change these values to connect their APIs.
 const API_CONFIG = {
-  // Base URL for the Node.js/Python server
-  serverBaseUrl: "http://localhost:5000/api",
+  serverBaseUrl: "http://127.0.0.1:8000/api",
   
   // Endpoint definitions
   endpoints: {
@@ -19,6 +18,60 @@ const API_CONFIG = {
     recommendations: "/music/recommend" // GET: fetch songs list filtered by emotion/acoustic metrics
   }
 };
+// ==========================================
+// LOCAL PERSISTENCE (Liked / History / Top Played)
+// ==========================================
+function getLikedTracks() {
+  return JSON.parse(localStorage.getItem("auraai_liked") || "[]");
+}
+
+function toggleLikedTrack(song) {
+  let liked = getLikedTracks();
+  const exists = liked.some(t => t.spotify_track_link === song.spotify_track_link);
+
+  if (exists) {
+    liked = liked.filter(t => t.spotify_track_link !== song.spotify_track_link);
+  } else {
+    liked.push(song);
+  }
+
+  localStorage.setItem("auraai_liked", JSON.stringify(liked));
+}
+
+function recordPlayHistory(song) {
+  let history = JSON.parse(localStorage.getItem("auraai_history") || "[]");
+  history.unshift({ ...song, playedAt: new Date().toISOString() });
+  history = history.slice(0, 50);
+  localStorage.setItem("auraai_history", JSON.stringify(history));
+
+  let counts = JSON.parse(localStorage.getItem("auraai_playcounts") || "{}");
+  counts[song.spotify_track_link] = (counts[song.spotify_track_link] || 0) + 1;
+  localStorage.setItem("auraai_playcounts", JSON.stringify(counts));
+}
+
+function getTopPlayed() {
+  const history = JSON.parse(localStorage.getItem("auraai_history") || "[]");
+  const counts = JSON.parse(localStorage.getItem("auraai_playcounts") || "{}");
+
+  const uniqueSongs = [];
+  const seen = new Set();
+  history.forEach(song => {
+    if (!seen.has(song.spotify_track_link)) {
+      seen.add(song.spotify_track_link);
+      uniqueSongs.push(song);
+    }
+  });
+
+  return uniqueSongs
+    .sort((a, b) => (counts[b.spotify_track_link] || 0) - (counts[a.spotify_track_link] || 0))
+    .slice(0, 10);
+}
+
+function renderLibrary() {
+  renderTrackList("library-liked-container", getLikedTracks());
+  renderTrackList("library-history-container", JSON.parse(localStorage.getItem("auraai_history") || "[]"));
+  renderTrackList("library-top-played-container", getTopPlayed());
+}
 
 // Global App State
 const state = {
@@ -70,67 +123,28 @@ const state = {
   3. Fetch user history and top played data from your endpoints and append them to 'library-history-container' and 'library-top-played-container'.
 */
 
-// Triggered when face scanner takes a picture
-async function sendFaceFrameToBackend(base64Frame) {
-  console.log("Integrator hook: Sending image frame to", API_CONFIG.endpoints.analyzeFace);
-  
-  /* Example Fetch integration:
-  try {
-    const response = await fetch(`${API_CONFIG.serverBaseUrl}${API_CONFIG.endpoints.analyzeFace}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image: base64Frame })
-    });
-    const result = await response.json();
-    if (result.success) {
-      updateSystemMood(result.detectedEmotion);
-    }
-  } catch(e) {
-    console.error("Face scan integration error:", e);
-  }
-  */
-  
-  // Frontend UI behavior (Simulating response for demonstration)
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({ success: true, detectedEmotion: "happy" });
-    }, 1200);
-  });
-}
+
 
 // Triggered when mic recording is complete
 async function sendVoiceBlobToBackend(audioBlob) {
-  console.log("Integrator hook: Sending recorded audio blob to", API_CONFIG.endpoints.analyzeVoice);
-  
-  /* Example Fetch integration:
   try {
     const formData = new FormData();
     formData.append("file", audioBlob, "voice.wav");
+
     const response = await fetch(`${API_CONFIG.serverBaseUrl}${API_CONFIG.endpoints.analyzeVoice}`, {
       method: "POST",
       body: formData
     });
     const result = await response.json();
-    if (result.success) {
-      updateSystemMood(result.detectedEmotion);
-    }
-  } catch(e) {
+    return { success: result.success, detectedEmotion: result.detectedEmotion };
+  } catch (e) {
     console.error("Voice integration error:", e);
+    return { success: false };
   }
-  */
-  
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({ success: true, detectedEmotion: "calm" });
-    }, 1000);
-  });
 }
 
 // Triggered when user finishes typing in journal
 async function sendTextToBackend(textString) {
-  console.log("Integrator hook: Sending text query to", API_CONFIG.endpoints.analyzeText);
-  
-  /* Example Fetch integration:
   try {
     const response = await fetch(`${API_CONFIG.serverBaseUrl}${API_CONFIG.endpoints.analyzeText}`, {
       method: "POST",
@@ -138,37 +152,110 @@ async function sendTextToBackend(textString) {
       body: JSON.stringify({ text: textString })
     });
     const result = await response.json();
-    if (result.success) {
-      updateSystemMood(result.detectedEmotion);
-    }
-  } catch(e) {
+    return { success: result.success, detectedEmotion: result.detectedEmotion };
+  } catch (e) {
     console.error("Text integration error:", e);
+    return { success: false };
   }
-  */
-  
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({ success: true, detectedEmotion: "focused" });
-    }, 600);
-  });
 }
 
 // Triggered to update recommendation lists based on mood state
 async function fetchRecommendationsFromBackend(mood, valence, energy) {
-  console.log(`Integrator hook: Fetching recommendations from ${API_CONFIG.endpoints.recommendations} for mood=${mood}`);
-  
-  /* Example Fetch integration:
   try {
-    const response = await fetch(`${API_CONFIG.serverBaseUrl}${API_CONFIG.endpoints.recommendations}?mood=${mood}&valence=${valence}&energy=${energy}`);
-    const songData = await response.json(); // Expect array of tracks
-    
-    // Save to state and update UI
+    const response = await fetch(`${API_CONFIG.serverBaseUrl}${API_CONFIG.endpoints.recommendations}?mood=${mood}`);
+    const songData = await response.json();
+
     state.currentTrackList = songData;
-    renderTracksQueue(songData);
-  } catch(e) {
+    renderTrackList("recommended-tracks-container", songData);
+  } catch (e) {
     console.error("Recommendations integration error:", e);
   }
-  */
+}
+function renderTrackList(containerId, songs) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = "";
+
+  if (!songs || songs.length === 0) {
+    container.innerHTML = `<p style="color: var(--text-muted); padding: 16px;">No recommendations found.</p>`;
+    return;
+  }
+
+  songs.forEach((song) => {
+    const row = document.createElement("div");
+    row.className = "track-row";
+    row.style.cursor = "pointer";
+
+    const initials = song.track_name ? song.track_name.substring(0, 2).toUpperCase() : "??";
+    const isLiked = getLikedTracks().some(t => t.spotify_track_link === song.spotify_track_link);
+
+    row.innerHTML = `
+      <div class="track-cover" style="background: linear-gradient(135deg, var(--accent-color), var(--accent-pink));">${initials}</div>
+      <div class="track-details">
+        <div class="track-title">${song.track_name}</div>
+        <div class="track-artist">${song.artists}</div>
+      </div>
+      <div class="track-mood-badge" style="background: rgba(99,102,241,0.15); color: var(--accent-color);">${song.mood}</div>
+      <button class="control-btn btn-like-track" style="margin-left:8px;" data-liked="${isLiked}">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="${isLiked ? 'currentColor' : 'none'}">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      </button>
+    `;
+
+    row.addEventListener("click", (e) => {
+      if (e.target.closest(".btn-like-track")) return;
+      playSpotifyTrack(song);
+    });
+
+    row.querySelector(".btn-like-track").addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleLikedTrack(song);
+      renderTrackList(containerId, songs);
+    });
+
+    container.appendChild(row);
+  });
+}
+// ==========================================
+// SEARCH (mood-based)
+// ==========================================
+const globalSearchInput = document.getElementById("global-search-input");
+const VALID_MOODS = ["happy", "sad", "calm", "energetic", "motivated", "romantic"];
+
+globalSearchInput.addEventListener("keypress", async (e) => {
+  if (e.key !== "Enter") return;
+
+  const query = globalSearchInput.value.trim().toLowerCase();
+  if (!query) return;
+
+  const matchedMood = VALID_MOODS.find(m => query.includes(m)) || "Happy";
+
+  document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+  document.querySelectorAll(".content-section").forEach(s => s.classList.remove("active"));
+  document.getElementById("section-search").classList.add("active");
+
+  try {
+    const response = await fetch(`${API_CONFIG.serverBaseUrl}${API_CONFIG.endpoints.recommendations}?mood=${matchedMood.charAt(0).toUpperCase() + matchedMood.slice(1)}`);
+    const songData = await response.json();
+    renderTrackList("search-results-container", songData);
+  } catch (e) {
+    console.error("Search error:", e);
+  }
+});
+
+function playSpotifyTrack(song) {
+  const spotifyContainer = document.getElementById("spotify-player-container");
+  const spotifyIframe = document.getElementById("spotify-iframe");
+
+  const trackId = song.spotify_track_link.split("/track/")[1];
+  spotifyIframe.src = `https://open.spotify.com/embed/track/${trackId}`;
+
+  spotifyContainer.style.display = "block";
+
+  document.getElementById("current-player-title").textContent = song.track_name;
+  document.getElementById("current-player-artist").textContent = song.artists;
+
+  recordPlayHistory(song);
 }
 
 // ==========================================
@@ -190,6 +277,9 @@ function initNavigation() {
         sec.classList.remove("active");
         if (sec.id === `section-${target}`) {
           sec.classList.add("active");
+          if (target === "library") {
+          renderLibrary();
+        }
         }
       });
     });
@@ -351,6 +441,21 @@ async function captureAndScanFace() {
   }, 1200);
 }
 
+async function sendFaceFrameToBackend(base64Frame) {
+  try {
+    const response = await fetch(`${API_CONFIG.serverBaseUrl}${API_CONFIG.endpoints.analyzeFace}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: base64Frame })
+    });
+    const result = await response.json();
+    return { success: result.success, detectedEmotion: result.detectedEmotion };
+  } catch (e) {
+    console.error("Face scan integration error:", e);
+    return { success: false };
+  }
+}
+
 // ==========================================
 // 5. VOICE RECORDER & GLOWING EQUALIZER
 // ==========================================
@@ -382,6 +487,10 @@ async function recordVoiceClip() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     state.isRecordingVoice = true;
+    const recordedChunks = [];
+    const mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = (e) => recordedChunks.push(e.data);
+    mediaRecorder.start();
     btnRecordVoice.classList.add("recording");
     voiceStatusText.textContent = "Listening... (3 seconds)";
     
@@ -419,8 +528,8 @@ async function recordVoiceClip() {
         
         // Draw rounded gradient bar
         const grad = voiceCtx.createLinearGradient(x, h, x, y);
-        grad.addColorStop(0, "var(--accent-color)");
-        grad.addColorStop(1, "var(--accent-cyan)");
+        grad.addColorStop(0, "#6366f1");
+        grad.addColorStop(1, "#06b6d4");
         
         // Glow effect
         voiceCtx.shadowBlur = 8;
@@ -438,24 +547,30 @@ async function recordVoiceClip() {
       state.isRecordingVoice = false;
       btnRecordVoice.classList.remove("recording");
       voiceStatusText.textContent = "Analyzing tone...";
-      
-      stream.getTracks().forEach(track => track.stop());
-      if (state.audioContext) state.audioContext.close();
-      
-      const result = await sendVoiceBlobToBackend(null);
-      if (result && result.success) {
-        voiceStatusText.textContent = `Tone: ${result.detectedEmotion.toUpperCase()}`;
-        updateSystemMood(result.detectedEmotion);
-      } else {
-        voiceStatusText.textContent = "Voice scan failed";
-      }
-      drawWavePlaceholder();
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop());
+        if (state.audioContext) state.audioContext.close();
+
+        const audioBlob = new Blob(recordedChunks, { type: "audio/webm" });
+        const result = await sendVoiceBlobToBackend(audioBlob);
+        if (result && result.success) {
+          voiceStatusText.textContent = `Tone: ${result.detectedEmotion.toUpperCase()}`;
+          updateSystemMood(result.detectedEmotion);
+        } else {
+          voiceStatusText.textContent = "Voice scan failed";
+        }
+        drawWavePlaceholder();
+      };
+
+      mediaRecorder.stop();
     }, 3000);
     
   } catch (err) {
-    alert("Unable to access microphone.");
-    voiceStatusText.textContent = "Microphone error";
-  }
+     console.error("Mic error details:", err);
+     alert("Unable to access microphone.");
+     voiceStatusText.textContent = "Microphone error";
+   }
 }
 
 // ==========================================
@@ -530,11 +645,11 @@ manualGrid.addEventListener("click", (e) => {
   const valence = (x / rect.width) * 2 - 1;
   const arousal = 1 - (y / rect.height) * 2;
   
-  let mood = "neutral";
-  if (valence >= 0 && arousal >= 0) mood = "happy";
-  else if (valence >= 0 && arousal < 0) mood = "calm";
-  else if (valence < 0 && arousal >= 0) mood = "focused";
-  else if (valence < 0 && arousal < 0) mood = "sad";
+  let mood = "calm";
+if (valence >= 0 && arousal >= 0) mood = "happy";
+else if (valence >= 0 && arousal < 0) mood = "romantic";
+else if (valence < 0 && arousal >= 0) mood = "energetic";
+else if (valence < 0 && arousal < 0) mood = "sad";
   
   updateSystemMood(mood, valence, arousal);
 });
@@ -549,7 +664,7 @@ const mixPlaylistSubtitle = document.getElementById("mix-playlist-subtitle");
 const btnResetBrew = document.getElementById("btn-reset-brew");
 const btnBrewPlaylist = document.getElementById("btn-brew-playlist");
 
-const INTEGRATOR_EMOTIONS = ["happy", "energetic", "calm", "focused", "sad", "romantic"];
+const INTEGRATOR_EMOTIONS = ["happy", "sad", "calm", "energetic", "motivated", "romantic"];
 
 function renderMixologySliders() {
   if (!mixologyContainer) return;
@@ -633,9 +748,29 @@ btnResetBrew.addEventListener("click", () => {
   updateMixologyCard();
 });
 
-btnBrewPlaylist.addEventListener("click", () => {
-  console.log("Integrator hook: brewing custom playlist...");
-  alert("Integrator Action: Plug in your endpoint to generate a custom playlist based on the mix parameters!");
+btnBrewPlaylist.addEventListener("click", async () => {
+  const sliders = document.querySelectorAll(".mix-slider");
+  let highestVal = -1;
+  let highestMood = "happy";
+
+  sliders.forEach(slider => {
+    const val = parseInt(slider.value);
+    const id = slider.id.replace("slider-mix-", "");
+    if (val > highestVal) {
+      highestVal = val;
+      highestMood = id;
+    }
+  });
+
+  const mood = highestMood.charAt(0).toUpperCase() + highestMood.slice(1);
+
+  try {
+    const response = await fetch(`${API_CONFIG.serverBaseUrl}${API_CONFIG.endpoints.recommendations}?mood=${mood}`);
+    const songData = await response.json();
+    renderTrackList("brewed-tracks-container", songData);
+  } catch (e) {
+    console.error("Brew error:", e);
+  }
 });
 
 // ==========================================

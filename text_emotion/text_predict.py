@@ -1,51 +1,49 @@
-from transformers import pipeline
+import joblib
+import numpy as np
+from pathlib import Path
 
-print("Loading GoEmotions Transformer... (only the first time)")
 
-classifier = pipeline(
-    "text-classification",
-    model="SamLowe/roberta-base-go_emotions",
-    top_k=None
-)
+BASE_DIR = Path(__file__).resolve().parent
 
-print("Model loaded successfully.\n")
+MODEL_PATH = BASE_DIR / "model" / "goemotions_text_model.pkl"
+BINARIZER_PATH = BASE_DIR / "model" / "label_binarizer.pkl"
+EMOTIONS_PATH = BASE_DIR.parent / "datasets" / "text_emotion" / "goemotions" / "emotions.txt"
+
+
+model = joblib.load(MODEL_PATH)
+mlb = joblib.load(BINARIZER_PATH)
+
+
+with open(EMOTIONS_PATH, "r", encoding="utf-8") as file:
+    emotions = [line.strip() for line in file.readlines()]
 
 
 def predict_emotions(text, top_k=3):
+    probabilities = model.predict_proba([text])
 
-    predictions = classifier(text)[0]
+    probs = probabilities[0]
 
-    predictions = sorted(
-        predictions,
-        key=lambda x: x["score"],
-        reverse=True
-    )
+    top_indices = np.argsort(probs)[::-1][:top_k]
 
     results = []
 
-    for pred in predictions[:top_k]:
+    for idx in top_indices:
         results.append({
-            "emotion": pred["label"],
-            "confidence": round(float(pred["score"]), 4)
+            "emotion": emotions[idx],
+            "confidence": round(float(probs[idx]), 4)
         })
 
     return results
 
 
 if __name__ == "__main__":
+    text = input("Enter text: ")
 
-    while True:
+    predictions = predict_emotions(text)
 
-        text = input("\nEnter text (or 'q' to quit): ")
+    print("\nTop Predicted Emotions:\n")
 
-        if text.lower() == "q":
-            break
-
-        predictions = predict_emotions(text)
-
-        print("\nTop Predicted Emotions:\n")
-
-        for pred in predictions:
-            print(
-                f"{pred['emotion']} -> {pred['confidence']}"
-            )
+    for pred in predictions:
+        print(
+            f"{pred['emotion']} -> {pred['confidence']}"
+        )

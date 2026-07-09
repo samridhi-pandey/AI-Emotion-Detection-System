@@ -2,9 +2,11 @@ import os
 import librosa
 import numpy as np
 import joblib
+from pathlib import Path
 
-MODEL_PATH = "audio_emotion/model/audio_emotion_model.pkl"
-ENCODER_PATH = "audio_emotion/model/audio_label_encoder.pkl"
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / "model" / "audio_emotion_model.pkl"
+ENCODER_PATH = BASE_DIR / "model" / "audio_label_encoder.pkl"
 
 
 

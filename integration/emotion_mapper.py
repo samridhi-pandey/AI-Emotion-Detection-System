@@ -1,5 +1,6 @@
-TEXT_TO_FINAL = {
+from collections import Counter
 
+TEXT_TO_FINAL = {
     # Happy
     "joy": "Happy",
     "excitement": "Happy",
@@ -43,28 +44,22 @@ TEXT_TO_FINAL = {
     "neutral": "Neutral"
 }
 
-from collections import Counter
-
 
 def get_final_text_emotion(predictions):
     """
-    Convert top GoEmotions predictions into one final emotion.
+    Convert top predicted emotions into one final emotion.
     """
-
     mapped = []
 
     for pred in predictions:
         emotion = pred["emotion"]
-
-        mapped.append(
-            TEXT_TO_FINAL.get(emotion, "Neutral")
-        )
+        mapped.append(TEXT_TO_FINAL.get(emotion, "Neutral"))
 
     counter = Counter(mapped)
-
     return counter.most_common(1)[0][0]
-FACE_TO_FINAL = {
 
+
+FACE_TO_FINAL = {
     "happy": "Happy",
     "sad": "Sad",
     "angry": "Angry",
@@ -74,9 +69,7 @@ FACE_TO_FINAL = {
     "neutral": "Neutral"
 }
 
-
 AUDIO_TO_FINAL = {
-
     "happy": "Happy",
     "sad": "Sad",
     "angry": "Angry",
