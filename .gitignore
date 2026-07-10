@@ -6,3 +6,4 @@ node_modules/
 *.log
 datasets/audio_emotion/
 datasets/facial_emotion/archive (14)/
+.vscode/
